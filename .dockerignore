@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+*.png
+*.jpg
+qa-*
+tool_calls
+REBUILD_SPEC.md
+POLISH_SPEC.md
+data/casino.db
