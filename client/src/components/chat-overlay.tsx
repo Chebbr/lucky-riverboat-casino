@@ -52,7 +52,7 @@ export default function ChatOverlay() {
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105"
+        className="fixed bottom-20 md:bottom-6 right-6 z-40 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105"
         style={{ backgroundColor: "var(--gold)", color: "var(--navy)" }}
         title="Open chat"
         data-testid="btn-chat-toggle"

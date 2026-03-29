@@ -29,6 +29,9 @@ import PlinkoGame from "@/pages/games/plinko";
 import AboutPage from "@/pages/about";
 import AffiliatePage from "@/pages/affiliate";
 import ResponsibleGamingPage from "@/pages/responsible-gaming";
+import TermsPage from "@/pages/terms";
+import PrivacyPage from "@/pages/privacy";
+import ProvablyFairPage from "@/pages/provably-fair";
 
 function AppRouter() {
   return (
@@ -56,6 +59,9 @@ function AppRouter() {
         <Route path="/about" component={AboutPage} />
         <Route path="/affiliate" component={AffiliatePage} />
         <Route path="/responsible-gaming" component={ResponsibleGamingPage} />
+        <Route path="/terms" component={TermsPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/provably-fair" component={ProvablyFairPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

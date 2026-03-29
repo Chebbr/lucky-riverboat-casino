@@ -470,10 +470,71 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 relative z-10">{children}</main>
+      <main className="flex-1 relative z-10 pb-16 md:pb-0">{children}</main>
 
       {/* Chat Overlay */}
       <ChatOverlay />
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/50 bg-background/95 backdrop-blur-md" data-testid="mobile-bottom-nav">
+        <div className="flex items-center justify-around h-16 px-2">
+          <Link href="/">
+            <button
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors ${
+                location === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="mobile-nav-home"
+            >
+              <Home className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Home</span>
+            </button>
+          </Link>
+          <Link href="/casino">
+            <button
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors ${
+                location === "/casino" || location.startsWith("/games/") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="mobile-nav-games"
+            >
+              <Gamepad2 className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Games</span>
+            </button>
+          </Link>
+          <Link href="/sportsbook">
+            <button
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors ${
+                location === "/sportsbook" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="mobile-nav-sportsbook"
+            >
+              <Trophy className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Sports</span>
+            </button>
+          </Link>
+          <Link href="/wallet">
+            <button
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors ${
+                location === "/wallet" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="mobile-nav-wallet"
+            >
+              <WalletIcon className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Wallet</span>
+            </button>
+          </Link>
+          <Link href="/profile">
+            <button
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors ${
+                location === "/profile" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="mobile-nav-profile"
+            >
+              <User className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Profile</span>
+            </button>
+          </Link>
+        </div>
+      </nav>
 
       {/* ── Competitive Footer ── */}
       <footer className="border-t border-border/50 mt-auto relative z-10 bg-background/95">
@@ -537,7 +598,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {[
                   { label: "House Originals", href: "/casino" },
                   { label: "All Games", href: "/casino" },
-                  { label: "Provably Fair", href: "/casino" },
+                  { label: "Provably Fair", href: "/provably-fair" },
                   { label: "Promotions", href: "/casino" },
                   { label: "VIP Club", href: "/vip" },
                 ].map((item) => (
@@ -591,8 +652,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {[
                   { label: "Help Center", href: "/" },
                   { label: "Responsible Gaming", href: "/" },
-                  { label: "Terms of Service", href: "/" },
-                  { label: "Privacy Policy", href: "/" },
+                  { label: "Terms of Service", href: "/terms" },
+                  { label: "Privacy Policy", href: "/privacy" },
                   { label: "Contact", href: "/" },
                 ].map((item) => (
                   <li key={item.label}>
