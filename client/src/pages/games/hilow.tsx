@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, ArrowUp, ArrowDown, Loader2, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const CARD_NAMES = ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -46,6 +47,9 @@ export default function HiLowGame() {
   const [currency] = useState("USDT");
   const [result, setResult] = useState<any>(null);
   const [streak, setStreak] = useState(0);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
+  const lastPredictionRef = useRef<string>("high");
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -72,8 +76,20 @@ export default function HiLowGame() {
         setStreak(0);
         toast({ title: "Wrong!", description: `Card was ${CARD_NAMES[data.nextCard]}`, variant: "destructive" });
       }
+      autobet.handleBetResult({ won: data.correct, payout: data.payout ?? 0, betAmount: parseFloat(betAmount) });
+      autobet.decrementBets();
+      if (autobet.shouldContinue()) {
+        autobetTimeoutRef.current = setTimeout(() => {
+          if (autobet.shouldContinue()) playMutation.mutate(lastPredictionRef.current);
+        }, 1500);
+      } else {
+        autobet.setAutobetEnabled(false);
+      }
     },
-    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      autobet.setAutobetEnabled(false);
+    },
   });
 
   const half = () => setBetAmount(v => Math.max(1, parseFloat(v) / 2).toFixed(2));
@@ -132,7 +148,7 @@ export default function HiLowGame() {
             <Button
               className="w-36 h-16 bg-green-600 hover:bg-green-700 text-white font-bold text-lg uppercase tracking-wider"
               disabled={!isAuthenticated || playMutation.isPending}
-              onClick={() => playMutation.mutate("high")}
+              onClick={() => { lastPredictionRef.current = "high"; playMutation.mutate("high"); }}
               data-testid="hilow-high-btn"
             >
               <ArrowUp className="w-6 h-6 mr-2" /> Higher
@@ -140,7 +156,7 @@ export default function HiLowGame() {
             <Button
               className="w-36 h-16 bg-red-600 hover:bg-red-700 text-white font-bold text-lg uppercase tracking-wider"
               disabled={!isAuthenticated || playMutation.isPending}
-              onClick={() => playMutation.mutate("low")}
+              onClick={() => { lastPredictionRef.current = "low"; playMutation.mutate("low"); }}
               data-testid="hilow-low-btn"
             >
               <ArrowDown className="w-6 h-6 mr-2" /> Lower
@@ -177,6 +193,7 @@ export default function HiLowGame() {
               <Button className="w-full btn-casino uppercase tracking-wider" data-testid="hilow-login-btn">Login to Play</Button>
             </Link>
           )}
+          <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
           <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3 h-3 text-primary/50" />
             <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

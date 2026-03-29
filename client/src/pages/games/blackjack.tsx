@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const suits = ["♠", "♥", "♦", "♣"];
 const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -84,6 +85,8 @@ export default function BlackjackGame() {
   const [dealerRevealed, setDealerRevealed] = useState(false);
   const [gameResult, setGameResult] = useState<string | null>(null);
   const [payout, setPayout] = useState(0);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -174,8 +177,20 @@ export default function BlackjackGame() {
     }
 
     const payoutAmt = parseFloat(betAmount) * mult;
+    const won = mult > 1;
     setPayout(payoutAmt);
     setGameResult(result);
+
+    // Autobet logic
+    autobet.handleBetResult({ won, payout: payoutAmt, betAmount: parseFloat(betAmount) });
+    autobet.decrementBets();
+    if (autobet.shouldContinue()) {
+      autobetTimeoutRef.current = setTimeout(() => {
+        if (autobet.shouldContinue()) startGame();
+      }, 1500);
+    } else {
+      autobet.setAutobetEnabled(false);
+    }
 
     // Record the bet on the backend
     playMutation.mutate({
@@ -376,6 +391,7 @@ export default function BlackjackGame() {
                 Play Again
               </Button>
             )}
+            <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
             <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3 h-3 text-primary/50" />
               <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

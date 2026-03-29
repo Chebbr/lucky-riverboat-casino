@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, Loader2, Skull, CheckCircle2, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const PLAYER_COUNT = Math.floor(Math.random() * 200 + 50);
 
@@ -25,6 +26,8 @@ export default function TowerGame() {
   const [gameOver, setGameOver] = useState(false);
   const [failedLevel, setFailedLevel] = useState(-1);
   const [failedTile, setFailedTile] = useState(-1);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -68,6 +71,15 @@ export default function TowerGame() {
         setGameOver(true);
         toast({ title: "Fell off the plank!", description: "Better luck next time", variant: "destructive" });
         queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+        autobet.handleBetResult({ won: false, payout: 0, betAmount: parseFloat(betAmount) });
+        autobet.decrementBets();
+        if (autobet.shouldContinue()) {
+          autobetTimeoutRef.current = setTimeout(() => {
+            if (autobet.shouldContinue()) startMutation.mutate();
+          }, 1500);
+        } else {
+          autobet.setAutobetEnabled(false);
+        }
       } else {
         setChoices(prev => [...prev, tileChoice]);
         setCurrentLevel(data.currentLevel);
@@ -93,6 +105,15 @@ export default function TowerGame() {
       setGameOver(true);
       queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
       toast({ title: `Cashed out $${data.payout.toFixed(2)}!`, description: `${data.multiplier}x` });
+      autobet.handleBetResult({ won: true, payout: data.payout, betAmount: parseFloat(betAmount) });
+      autobet.decrementBets();
+      if (autobet.shouldContinue()) {
+        autobetTimeoutRef.current = setTimeout(() => {
+          if (autobet.shouldContinue()) startMutation.mutate();
+        }, 1500);
+      } else {
+        autobet.setAutobetEnabled(false);
+      }
     },
     onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
@@ -224,6 +245,7 @@ export default function TowerGame() {
               New Game
             </Button>
           )}
+          <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
           <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3 h-3 text-primary/50" />
             <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

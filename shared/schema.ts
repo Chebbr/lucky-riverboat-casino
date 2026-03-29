@@ -145,3 +145,75 @@ export const sportsBets = sqliteTable("sports_bets", {
 export const insertSportsBetSchema = createInsertSchema(sportsBets).omit({ id: true });
 export type InsertSportsBet = z.infer<typeof insertSportsBetSchema>;
 export type SportsBet = typeof sportsBets.$inferSelect;
+
+// ===== VIP PROGRESS / RAKEBACK =====
+export const vipProgress = sqliteTable("vip_progress", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id").notNull(),
+  totalWagered: real("total_wagered").notNull().default(0),
+  rakebackEarned: real("rakeback_earned").notNull().default(0),
+  rakebackClaimed: real("rakeback_claimed").notNull().default(0),
+  currentTier: text("current_tier").notNull().default("bronze"),
+  updatedAt: text("updated_at"),
+});
+
+export const insertVipProgressSchema = createInsertSchema(vipProgress).omit({ id: true });
+export type InsertVipProgress = z.infer<typeof insertVipProgressSchema>;
+export type VipProgress = typeof vipProgress.$inferSelect;
+
+// ===== PROMO CODES =====
+export const promoCodes = sqliteTable("promo_codes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  code: text("code").notNull().unique(),
+  type: text("type").notNull(), // 'fixed' | 'percentage'
+  value: real("value").notNull(),
+  maxUses: integer("max_uses"),
+  currentUses: integer("current_uses").notNull().default(0),
+  expiresAt: text("expires_at"),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+export const insertPromoCodeSchema = createInsertSchema(promoCodes).omit({ id: true, currentUses: true });
+export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
+export type PromoCode = typeof promoCodes.$inferSelect;
+
+// ===== PROMO REDEMPTIONS =====
+export const promoRedemptions = sqliteTable("promo_redemptions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id").notNull(),
+  promoCodeId: integer("promo_code_id").notNull(),
+  amount: real("amount").notNull(),
+  redeemedAt: text("redeemed_at"),
+});
+
+export const insertPromoRedemptionSchema = createInsertSchema(promoRedemptions).omit({ id: true });
+export type InsertPromoRedemption = z.infer<typeof insertPromoRedemptionSchema>;
+export type PromoRedemption = typeof promoRedemptions.$inferSelect;
+
+// ===== AFFILIATES =====
+export const affiliates = sqliteTable("affiliates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id").notNull(),
+  referralCode: text("referral_code").notNull().unique(),
+  totalReferrals: integer("total_referrals").notNull().default(0),
+  totalCommission: real("total_commission").notNull().default(0),
+  commissionRate: real("commission_rate").notNull().default(0.05), // 5%
+  createdAt: text("created_at"),
+});
+
+export const insertAffiliateSchema = createInsertSchema(affiliates).omit({ id: true });
+export type InsertAffiliate = z.infer<typeof insertAffiliateSchema>;
+export type Affiliate = typeof affiliates.$inferSelect;
+
+// ===== REFERRALS =====
+export const referrals = sqliteTable("referrals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  affiliateId: integer("affiliate_id").notNull(),
+  referredUserId: integer("referred_user_id").notNull(),
+  commission: real("commission").notNull().default(0),
+  createdAt: text("created_at"),
+});
+
+export const insertReferralSchema = createInsertSchema(referrals).omit({ id: true });
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type Referral = typeof referrals.$inferSelect;

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const symbols = ["🍒", "🍊", "🍋", "🔔", "⭐", "💎", "7️⃣"];
 
@@ -44,6 +45,8 @@ export default function SlotsGame() {
   const [result, setResult] = useState<string | null>(null);
   const [payout, setPayout] = useState(0);
   const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -92,11 +95,22 @@ export default function SlotsGame() {
             setResult(`${data.finalReels.join(" ")} — No match`);
           }
           queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+          // Autobet
+          autobet.handleBetResult({ won: data.payout > 0, payout: data.payout, betAmount: parseFloat(betAmount) });
+          autobet.decrementBets();
+          if (autobet.shouldContinue()) {
+            autobetTimeoutRef.current = setTimeout(() => {
+              if (autobet.shouldContinue()) playMutation.mutate();
+            }, 1500);
+          } else {
+            autobet.setAutobetEnabled(false);
+          }
         }
       }, 80);
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
+      autobet.setAutobetEnabled(false);
     },
   });
 
@@ -259,6 +273,7 @@ export default function SlotsGame() {
             >
               {spinning ? "Spinning..." : "SPIN"}
             </Button>
+            <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
             <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3 h-3 text-primary/50" />
               <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

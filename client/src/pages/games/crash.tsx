@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, Loader2, TrendingUp, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const PLAYER_COUNT = Math.floor(Math.random() * 200 + 50);
 
@@ -24,6 +25,8 @@ export default function CrashGame() {
   const [cashedOut, setCashedOut] = useState(false);
   const intervalRef = useRef<any>(null);
   const crashPointRef = useRef(0);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -86,8 +89,18 @@ export default function CrashGame() {
         setCrashed(true);
         setCrashPoint(data.crashPoint);
         toast({ title: "Too late!", description: `Crashed at ${data.crashPoint}x`, variant: "destructive" });
+        autobet.handleBetResult({ won: false, payout: 0, betAmount: parseFloat(betAmount) });
       } else {
         toast({ title: `Cashed out $${data.payout.toFixed(2)}!`, description: `${data.multiplier}x` });
+        autobet.handleBetResult({ won: true, payout: data.payout, betAmount: parseFloat(betAmount) });
+      }
+      autobet.decrementBets();
+      if (autobet.shouldContinue()) {
+        autobetTimeoutRef.current = setTimeout(() => {
+          if (autobet.shouldContinue()) startMutation.mutate();
+        }, 1500);
+      } else {
+        autobet.setAutobetEnabled(false);
       }
     },
     onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
@@ -205,6 +218,7 @@ export default function CrashGame() {
               Play Again
             </Button>
           )}
+          <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
           <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3 h-3 text-primary/50" />
             <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

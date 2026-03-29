@@ -258,6 +258,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         }
       }
 
+      // Update rakeback progress
+      await storage.updateVipProgress(userId, betAmount);
+
       // Get updated balance
       const finalWallet = await storage.getWallet(userId, currency);
 
@@ -562,6 +565,100 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get("/api/vip/benefits", (_req: Request, res: Response) => {
     return res.json(VIP_TIERS.filter(t => t.tier !== "none"));
+  });
+
+  // ===== VIP PROGRESS / RAKEBACK ROUTES =====
+  app.get("/api/vip/progress", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
+    const progress = await storage.getVipProgress(userId);
+    if (!progress) {
+      return res.json({
+        userId,
+        totalWagered: 0,
+        rakebackEarned: 0,
+        rakebackClaimed: 0,
+        unclaimedRakeback: 0,
+        currentTier: "bronze",
+        updatedAt: null,
+      });
+    }
+    return res.json({
+      ...progress,
+      unclaimedRakeback: progress.rakebackEarned - progress.rakebackClaimed,
+    });
+  });
+
+  app.post("/api/vip/claim-rakeback", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
+    try {
+      const amount = await storage.claimRakeback(userId);
+      if (amount <= 0) {
+        return res.status(400).json({ message: "No rakeback available to claim" });
+      }
+      return res.json({ message: `Claimed ${amount.toFixed(4)} USDT rakeback`, amount });
+    } catch (e: any) {
+      return res.status(500).json({ message: e.message });
+    }
+  });
+
+  // ===== PROMO CODE ROUTES =====
+  app.post("/api/promo/redeem", requireAuth, async (req: Request, res: Response) => {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ message: "Code is required" });
+    const userId = (req.user as any).id;
+    const result = await storage.redeemPromoCode(userId, code);
+    if (!result.success) return res.status(400).json({ message: result.message });
+    return res.json(result);
+  });
+
+  app.get("/api/promo/codes", requireAdmin, async (_req: Request, res: Response) => {
+    const codes = await storage.getPromoCodes();
+    return res.json(codes);
+  });
+
+  app.post("/api/promo/create", requireAdmin, async (req: Request, res: Response) => {
+    const { code, type, value, maxUses, expiresAt } = req.body;
+    if (!code || !type || value === undefined) {
+      return res.status(400).json({ message: "code, type, and value are required" });
+    }
+    try {
+      const promo = await storage.createPromoCode({ code, type, value, maxUses, expiresAt, isActive: true });
+      return res.json(promo);
+    } catch (e: any) {
+      return res.status(500).json({ message: e.message });
+    }
+  });
+
+  // ===== AFFILIATE ROUTES =====
+  app.get("/api/affiliate/dashboard", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
+    const affiliate = await storage.getAffiliate(userId);
+    if (!affiliate) return res.status(404).json({ message: "Not registered as affiliate" });
+    const refs = await storage.getAffiliateReferrals(affiliate.id);
+    return res.json({
+      ...affiliate,
+      referrals: refs,
+    });
+  });
+
+  app.post("/api/affiliate/register", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
+    const existing = await storage.getAffiliate(userId);
+    if (existing) return res.status(400).json({ message: "Already registered as affiliate" });
+    try {
+      const affiliate = await storage.createAffiliate(userId);
+      return res.json(affiliate);
+    } catch (e: any) {
+      return res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.get("/api/affiliate/referrals", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
+    const affiliate = await storage.getAffiliate(userId);
+    if (!affiliate) return res.status(404).json({ message: "Not registered as affiliate" });
+    const refs = await storage.getAffiliateReferrals(affiliate.id);
+    return res.json(refs);
   });
 
   return httpServer;
@@ -888,5 +985,24 @@ async function seedData() {
     value: 100,
     maxUses: 1000,
     expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
+  });
+
+  // Seed promo codes
+  await storage.createPromoCode({
+    code: "WELCOME50",
+    type: "fixed",
+    value: 50,
+    maxUses: 1000,
+    expiresAt: null,
+    isActive: true,
+  });
+
+  await storage.createPromoCode({
+    code: "RIVERBOAT100",
+    type: "percentage",
+    value: 100,
+    maxUses: 500,
+    expiresAt: null,
+    isActive: true,
   });
 }

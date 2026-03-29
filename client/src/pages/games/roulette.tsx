@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const RED_NUMBERS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
 const PLAYER_COUNT = Math.floor(Math.random() * 200 + 50);
@@ -21,6 +22,8 @@ export default function RouletteGame() {
   const [selectedBet, setSelectedBet] = useState<{ type: string; value?: string }>({ type: "red" });
   const [result, setResult] = useState<any>(null);
   const [spinning, setSpinning] = useState(false);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -46,9 +49,21 @@ export default function RouletteGame() {
         if (data.payout > 0) {
           toast({ title: `WIN! $${data.payout.toFixed(2)}`, description: `Ball landed on ${data.number} ${data.color}` });
         }
+        autobet.handleBetResult({ won: data.payout > 0, payout: data.payout, betAmount: parseFloat(betAmount) });
+        autobet.decrementBets();
+        if (autobet.shouldContinue()) {
+          autobetTimeoutRef.current = setTimeout(() => {
+            if (autobet.shouldContinue()) playMutation.mutate();
+          }, 1500);
+        } else {
+          autobet.setAutobetEnabled(false);
+        }
       }, 2000);
     },
-    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      autobet.setAutobetEnabled(false);
+    },
   });
 
   const getNumberColor = (n: number) => n === 0 ? "bg-green-600" : RED_NUMBERS.includes(n) ? "bg-red-600" : "bg-gray-800";
@@ -192,6 +207,7 @@ export default function RouletteGame() {
             {spinning ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             {!isAuthenticated ? "Login to Play" : spinning ? "Spinning..." : "Spin"}
           </Button>
+          <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
           <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3 h-3 text-primary/50" />
             <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

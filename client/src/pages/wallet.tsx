@@ -8,8 +8,107 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { Wallet as WalletType, Transaction } from "@shared/schema";
-import { Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, History, Loader2, Copy } from "lucide-react";
+import { Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, History, Loader2, Copy, Tag, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
+
+function PromoCodesTab({
+  promoCode,
+  setPromoCode,
+  promoResult,
+  setPromoResult,
+  onSuccess,
+}: {
+  promoCode: string;
+  setPromoCode: (v: string) => void;
+  promoResult: { success: boolean; message: string } | null;
+  setPromoResult: (v: { success: boolean; message: string } | null) => void;
+  onSuccess: () => void;
+}) {
+  const { toast } = useToast();
+
+  const redeemMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/promo/redeem", { code: promoCode });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setPromoResult({ success: true, message: data.message || "Promo code redeemed successfully!" });
+      setPromoCode("");
+      onSuccess();
+      toast({ title: "Promo Redeemed!", description: data.message || "Bonus added to your wallet." });
+    },
+    onError: (err: Error) => {
+      setPromoResult({ success: false, message: err.message || "Invalid or expired promo code." });
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="glass-panel rounded-xl p-6 max-w-md">
+      <h3 className="font-display text-lg gold-text mb-2">Promo Codes</h3>
+      <p className="text-xs text-muted-foreground mb-5">
+        Enter a promo code to claim bonus funds. Try <span className="text-primary font-semibold">WELCOME50</span> or{" "}
+        <span className="text-primary font-semibold">RIVERBOAT100</span>.
+      </p>
+      <div className="space-y-4">
+        <div>
+          <label className="text-xs text-muted-foreground">Promo Code</label>
+          <div className="flex gap-2 mt-1">
+            <Input
+              value={promoCode}
+              onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoResult(null); }}
+              placeholder="Enter code (e.g. WELCOME50)"
+              className="bg-muted/50 border-border font-mono tracking-widest"
+              data-testid="promo-code-input"
+            />
+            <Button
+              className="btn-casino shrink-0"
+              disabled={!promoCode.trim() || redeemMutation.isPending}
+              onClick={() => redeemMutation.mutate()}
+              data-testid="promo-redeem-btn"
+            >
+              {redeemMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Redeem"}
+            </Button>
+          </div>
+        </div>
+
+        {promoResult && (
+          <div
+            className={`flex items-start gap-3 rounded-lg p-3 border text-sm ${
+              promoResult.success
+                ? "bg-green-500/10 border-green-500/30 text-green-400"
+                : "bg-red-500/10 border-red-500/30 text-red-400"
+            }`}
+            data-testid="promo-result"
+          >
+            {promoResult.success ? (
+              <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            ) : (
+              <Tag className="w-4 h-4 mt-0.5 shrink-0" />
+            )}
+            <span>{promoResult.message}</span>
+          </div>
+        )}
+
+        <div className="pt-2 border-t border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">Available Codes</p>
+          <div className="flex gap-2">
+            {["WELCOME50", "RIVERBOAT100"].map((code) => (
+              <button
+                key={code}
+                onClick={() => { setPromoCode(code); setPromoResult(null); }}
+                className="text-xs font-mono bg-primary/10 text-primary border border-primary/30 px-3 py-1.5 rounded hover:bg-primary/20 transition-colors"
+                data-testid={`promo-hint-${code}`}
+              >
+                {code}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function WalletPage() {
   const { isAuthenticated } = useAuth();
@@ -19,6 +118,8 @@ export default function WalletPage() {
   const [withdrawCurrency, setWithdrawCurrency] = useState("USDT");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawAddress, setWithdrawAddress] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoResult, setPromoResult] = useState<{ success: boolean; message: string } | null>(null);
 
   if (!isAuthenticated) {
     return (
@@ -122,6 +223,9 @@ export default function WalletPage() {
           <TabsTrigger value="history" data-testid="tab-history">
             <History className="w-3 h-3 mr-1" /> History
           </TabsTrigger>
+          <TabsTrigger value="promo" data-testid="tab-promo">
+            <Tag className="w-3 h-3 mr-1" /> Promo
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="deposit">
@@ -192,6 +296,19 @@ export default function WalletPage() {
               </Button>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="promo">
+          <PromoCodesTab
+            promoCode={promoCode}
+            setPromoCode={setPromoCode}
+            promoResult={promoResult}
+            setPromoResult={setPromoResult}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/wallet/transactions"] });
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="history">

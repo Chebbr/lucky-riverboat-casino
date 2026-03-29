@@ -26,6 +26,9 @@ import HelmGame from "@/pages/games/helm";
 import BlackjackGame from "@/pages/games/blackjack";
 import SlotsGame from "@/pages/games/slots";
 import PlinkoGame from "@/pages/games/plinko";
+import AboutPage from "@/pages/about";
+import AffiliatePage from "@/pages/affiliate";
+import ResponsibleGamingPage from "@/pages/responsible-gaming";
 
 function AppRouter() {
   return (
@@ -50,6 +53,9 @@ function AppRouter() {
         <Route path="/games/blackjack" component={BlackjackGame} />
         <Route path="/games/slots" component={SlotsGame} />
         <Route path="/games/plinko" component={PlinkoGame} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/affiliate" component={AffiliatePage} />
+        <Route path="/responsible-gaming" component={ResponsibleGamingPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

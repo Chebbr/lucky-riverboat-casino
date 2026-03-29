@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const ROWS = 8;
 const MULTIPLIERS = [0.5, 1, 1.5, 2, 3, 2, 1.5, 1, 0.5];
@@ -24,6 +25,8 @@ export default function PlinkoGame() {
   const [ballPath, setBallPath] = useState<number[]>([]);
   const [result, setResult] = useState<{ multiplier: number; payout: number } | null>(null);
   const animRef = useRef<NodeJS.Timeout | null>(null);
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
 
   const { data: wallets } = useQuery<Wallet[]>({
     queryKey: ["/api/wallet/balances"],
@@ -66,11 +69,22 @@ export default function PlinkoGame() {
             });
           }
           queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+          // Autobet
+          autobet.handleBetResult({ won: data.payout > 0, payout: data.payout, betAmount: parseFloat(betAmount) });
+          autobet.decrementBets();
+          if (autobet.shouldContinue()) {
+            autobetTimeoutRef.current = setTimeout(() => {
+              if (autobet.shouldContinue()) playMutation.mutate();
+            }, 1500);
+          } else {
+            autobet.setAutobetEnabled(false);
+          }
         }
       }, 250);
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
+      autobet.setAutobetEnabled(false);
     },
   });
 
@@ -247,6 +261,7 @@ export default function PlinkoGame() {
             >
               {gameActive ? "Dropping..." : "Drop Ball"}
             </Button>
+            <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
             <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3 h-3 text-primary/50" />
               <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

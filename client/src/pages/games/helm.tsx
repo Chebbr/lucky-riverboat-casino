@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
 import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import { AutobetPanel, useAutobet } from "@/components/autobet-panel";
 
 const SEGMENTS = [
   { label: "1x", color: "#374151", value: 1 },
@@ -47,6 +48,9 @@ export default function HelmGame() {
   });
   const balance = wallets?.find(w => w.currency === currency)?.balance || 0;
 
+  const autobet = useAutobet();
+  const autobetTimeoutRef = useRef<any>(null);
+
   const playMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/games/play", {
@@ -69,9 +73,21 @@ export default function HelmGame() {
         if (data.payout > 0) {
           toast({ title: `${data.segment} — Won $${data.payout.toFixed(2)}!`, description: `${data.multiplier}x multiplier` });
         }
+        autobet.handleBetResult({ won: data.payout > 0, payout: data.payout, betAmount: parseFloat(betAmount) });
+        autobet.decrementBets();
+        if (autobet.shouldContinue()) {
+          autobetTimeoutRef.current = setTimeout(() => {
+            if (autobet.shouldContinue()) playMutation.mutate();
+          }, 1500);
+        } else {
+          autobet.setAutobetEnabled(false);
+        }
       }, 4000);
     },
-    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      autobet.setAutobetEnabled(false);
+    },
   });
 
   const segAngle = 360 / SEGMENTS.length;
@@ -195,6 +211,7 @@ export default function HelmGame() {
               ))}
             </div>
           </div>
+          <AutobetPanel autobetState={autobet.autobetState} onChange={autobet.patchState} />
           <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3 h-3 text-primary/50" />
             <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>

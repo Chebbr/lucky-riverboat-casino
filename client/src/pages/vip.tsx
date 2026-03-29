@@ -2,8 +2,20 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
-import { Trophy, Star, Crown, Gem, Zap, Shield, Gift, Users, Headphones } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Trophy, Star, Crown, Gem, Zap, Shield, Gift, Users, Headphones, Loader2 } from "lucide-react";
+
+interface VIPProgress {
+  currentTier: string;
+  totalWagered: number;
+  nextTierThreshold: number;
+  rakebackEarned: number;
+  rakebackClaimed: number;
+}
 
 const tiers = [
   {
@@ -94,6 +106,32 @@ const benefits = [
 
 export default function VIPPage() {
   const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
+
+  const { data: vipProgress, isLoading: progressLoading } = useQuery<VIPProgress>({
+    queryKey: ["/api/vip/progress"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: isAuthenticated,
+  });
+
+  const claimRakebackMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/vip/claim-rakeback", {});
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/vip/progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/balances"] });
+      toast({ title: "Rakeback Claimed!", description: `$${data.amount?.toFixed(2) ?? "0.00"} added to your wallet.` });
+    },
+    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const currentTierName = vipProgress?.currentTier || "Bronze";
+  const unclaimedRakeback = vipProgress ? (vipProgress.rakebackEarned - vipProgress.rakebackClaimed) : 0;
+  const progressPercent = vipProgress
+    ? Math.min(100, (vipProgress.totalWagered / vipProgress.nextTierThreshold) * 100)
+    : 0;
 
   return (
     <div className="min-h-screen">
@@ -144,9 +182,18 @@ export default function VIPPage() {
                 transition={{ duration: 0.5, delay: i * 0.08 }}
               >
                 <div
-                  className={`bg-gradient-to-br ${tier.bgColor} border ${tier.borderColor} rounded-xl p-5 h-full hover:shadow-lg ${tier.glowColor} transition-all group`}
+                  className={`bg-gradient-to-br ${tier.bgColor} border ${tier.borderColor} rounded-xl p-5 h-full hover:shadow-lg ${tier.glowColor} transition-all group relative ${
+                    isAuthenticated && tier.name === currentTierName
+                      ? "ring-2 ring-primary shadow-lg"
+                      : ""
+                  }`}
                   data-testid={`vip-tier-${tier.name.toLowerCase()}`}
                 >
+                  {isAuthenticated && tier.name === currentTierName && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-background text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full">
+                      Current Tier
+                    </div>
+                  )}
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{tier.icon}</div>
                   <h3 className={`text-xl font-bold mb-1 ${tier.color}`} style={{ fontFamily: "'Cinzel', serif" }}>{tier.name}</h3>
                   <p className="text-xs text-muted-foreground mb-4">${tier.range} wagered</p>
@@ -229,19 +276,54 @@ export default function VIPPage() {
 
               {isAuthenticated ? (
                 <div className="bg-white/5 border border-white/10 rounded-xl p-8" data-testid="vip-progress-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-orange-400 font-bold flex items-center gap-2">
-                      🥉 Bronze
-                    </span>
-                    <span className="text-slate-300 font-bold flex items-center gap-2">
-                      🥈 Silver
-                    </span>
-                  </div>
-                  <Progress value={15} className="h-3 mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    You've wagered <span className="text-foreground font-bold">$150.00</span> of the $1,000 needed for Silver.
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">Keep playing to unlock higher tiers and earn more rewards!</p>
+                  {progressLoading ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-5 w-full" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-4 w-2/3 mx-auto" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold flex items-center gap-2">
+                          {tiers.find(t => t.name === currentTierName)?.icon} {currentTierName}
+                        </span>
+                        {vipProgress && vipProgress.nextTierThreshold < Infinity && (
+                          <span className="text-muted-foreground font-bold flex items-center gap-2 text-sm">
+                            Next Tier
+                          </span>
+                        )}
+                      </div>
+                      <Progress value={progressPercent} className="h-3 mb-3" />
+                      <p className="text-sm text-muted-foreground mb-4">
+                        You've wagered{" "}
+                        <span className="text-foreground font-bold">${(vipProgress?.totalWagered ?? 0).toFixed(2)}</span>{" "}
+                        {vipProgress && vipProgress.nextTierThreshold < Infinity && (
+                          <>of <span className="text-foreground font-bold">${vipProgress.nextTierThreshold.toLocaleString()}</span> needed for the next tier.</>   
+                        )}
+                        {(!vipProgress || vipProgress.nextTierThreshold >= Infinity) && "— you've reached the highest tier!"}
+                      </p>
+
+                      {/* Rakeback */}
+                      <div className="border-t border-white/10 pt-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Unclaimed Rakeback</span>
+                          <span className="text-lg font-bold gold-text" data-testid="vip-unclaimed-rakeback">
+                            ${unclaimedRakeback.toFixed(2)}
+                          </span>
+                        </div>
+                        <Button
+                          className="w-full btn-casino uppercase tracking-wider"
+                          disabled={unclaimedRakeback <= 0 || claimRakebackMutation.isPending}
+                          onClick={() => claimRakebackMutation.mutate()}
+                          data-testid="vip-claim-rakeback-btn"
+                        >
+                          {claimRakebackMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                          {unclaimedRakeback > 0 ? `Claim $${unclaimedRakeback.toFixed(2)} Rakeback` : "No Rakeback to Claim"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="bg-white/5 border border-white/10 rounded-xl p-8" data-testid="vip-login-prompt">
