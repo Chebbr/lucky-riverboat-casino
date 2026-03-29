@@ -19,7 +19,6 @@ import {
   Settings,
   MessageCircle,
   Diamond,
-  Globe,
   Search,
   Crown,
   Twitter,
@@ -252,17 +251,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Button>
             </Link>
 
-            <Link href="/metaverse">
-              <Button
-                variant="ghost"
-                className={`gap-2 ${isActive("/metaverse") ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
-                data-testid="nav-metaverse"
-              >
-                <Globe className="h-4 w-4" />
-                Metaverse
-              </Button>
-            </Link>
-
             {isAuthenticated && (
               <>
                 <Link href="/wallet">
@@ -447,18 +435,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </button>
               </Link>
 
-              <Link href="/metaverse">
-                <button
-                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 ${
-                    isActive("/metaverse") ? "bg-primary/10 text-primary" : "hover:bg-muted/50"
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Globe className="h-4 w-4" />
-                  Metaverse
-                </button>
-              </Link>
-
               {isAuthenticated && (
                 <>
                   <Link href="/wallet">
@@ -598,7 +574,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {[
                   { label: "About", href: "/" },
                   { label: "NFT Collection", href: "/nft" },
-                  { label: "Metaverse", href: "/metaverse" },
                   { label: "Whitepaper", href: "/" },
                   { label: "Affiliate Program", href: "/" },
                 ].map((item) => (
