@@ -105,7 +105,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         await storage.createWallet({
           userId: user.id,
           currency,
-          balance: currency === "USDT" ? 1000 : 0,
+          balance: 0,
           address: genAddress(currency),
         });
       }
@@ -840,13 +840,7 @@ async function seedData() {
   // Create admin
   const admin = await storage.createUser({ username: "admin", password: "admin123", role: "admin", createdAt: new Date().toISOString() });
   for (const c of ["BTC", "ETH", "USDT"]) {
-    await storage.createWallet({ userId: admin.id, currency: c, balance: c === "USDT" ? 100000 : c === "BTC" ? 1 : 10, address: genAddress(c) });
-  }
-
-  // Create demo user
-  const demo = await storage.createUser({ username: "demo", password: "demo123", createdAt: new Date().toISOString() });
-  for (const c of ["BTC", "ETH", "USDT"]) {
-    await storage.createWallet({ userId: demo.id, currency: c, balance: c === "USDT" ? 5000 : c === "BTC" ? 0.5 : 5, address: genAddress(c) });
+    await storage.createWallet({ userId: admin.id, currency: c, balance: 0, address: genAddress(c) });
   }
 
   // Seed games

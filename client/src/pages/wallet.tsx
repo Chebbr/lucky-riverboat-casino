@@ -147,7 +147,7 @@ export default function WalletPage() {
                   className="bg-muted/50 border-border" data-testid="deposit-amount-input" min="1" />
               </div>
               <p className="text-xs text-muted-foreground">
-                This is a simulated deposit for demo purposes.
+                Send crypto to your deposit address below. Deposits are confirmed after network verification.
               </p>
               <Button className="w-full btn-casino" disabled={depositMutation.isPending}
                 onClick={() => depositMutation.mutate()} data-testid="deposit-btn">

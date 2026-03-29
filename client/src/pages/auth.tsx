@@ -54,7 +54,7 @@ export default function AuthPage() {
                     id="login-username"
                     value={loginForm.username}
                     onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                    placeholder="demo"
+                    placeholder="Username"
                     data-testid="input-login-username"
                     className="bg-muted/50 border-border"
                   />
@@ -66,7 +66,7 @@ export default function AuthPage() {
                     type="password"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                    placeholder="demo123"
+                    placeholder="Password"
                     data-testid="input-login-password"
                     className="bg-muted/50 border-border"
                   />
@@ -80,9 +80,7 @@ export default function AuthPage() {
                   {login.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   Login
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Demo: demo / demo123 &bull; Admin: admin / admin123
-                </p>
+
               </form>
             </TabsContent>
 
@@ -125,7 +123,7 @@ export default function AuthPage() {
                   Create Account
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  New accounts get $1,000 USDT demo balance
+                  Deposit crypto to start playing
                 </p>
               </form>
             </TabsContent>

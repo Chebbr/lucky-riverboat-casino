@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Settings,
   MessageCircle,
+  Diamond,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ChatOverlay from "@/components/chat-overlay";
@@ -147,6 +148,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 <Trophy className="h-4 w-4" />
                 Sportsbook
+              </Button>
+            </Link>
+
+            <Link href="/nft">
+              <Button
+                variant="ghost"
+                className={`gap-2 ${isActive("/nft") ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+                data-testid="nav-nft"
+              >
+                <Diamond className="h-4 w-4" />
+                NFT
               </Button>
             </Link>
 
@@ -305,6 +317,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 >
                   <Trophy className="h-4 w-4" />
                   Sportsbook
+                </button>
+              </Link>
+
+              <Link href="/nft">
+                <button
+                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 ${
+                    isActive("/nft") ? "bg-primary/10 text-primary" : "hover:bg-muted/50"
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  data-testid="mobile-nav-nft"
+                >
+                  <Diamond className="h-4 w-4" />
+                  NFT
                 </button>
               </Link>
 

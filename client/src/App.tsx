@@ -13,6 +13,7 @@ import WalletPage from "@/pages/wallet";
 import ProfilePage from "@/pages/profile";
 import AdminPage from "@/pages/admin";
 import SportsbookPage from "@/pages/sportsbook";
+import NFTPage from "@/pages/nft";
 import KenoGame from "@/pages/games/keno";
 import RouletteGame from "@/pages/games/roulette";
 import MinesGame from "@/pages/games/mines";
@@ -35,6 +36,7 @@ function AppRouter() {
         <Route path="/profile" component={ProfilePage} />
         <Route path="/admin" component={AdminPage} />
         <Route path="/sportsbook" component={SportsbookPage} />
+        <Route path="/nft" component={NFTPage} />
         <Route path="/games/keno" component={KenoGame} />
         <Route path="/games/roulette" component={RouletteGame} />
         <Route path="/games/mines" component={MinesGame} />
