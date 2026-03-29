@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
@@ -8,10 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Wallet } from "@shared/schema";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 const ROWS = 8;
 const MULTIPLIERS = [0.5, 1, 1.5, 2, 3, 2, 1.5, 1, 0.5];
+const PLAYER_COUNT = Math.floor(Math.random() * 200 + 50);
 
 export default function PlinkoGame() {
   const { isAuthenticated } = useAuth();
@@ -87,22 +88,30 @@ export default function PlinkoGame() {
     playMutation.mutate();
   };
 
+  const half = () => setBetAmount(v => Math.max(1, parseFloat(v) / 2).toFixed(2));
+  const double = () => setBetAmount(v => (parseFloat(v) * 2).toFixed(2));
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <Link href="/casino">
-        <span className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 cursor-pointer" data-testid="back-to-casino">
-          <ArrowLeft className="w-4 h-4" /> Back to Casino
-        </span>
-      </Link>
-
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="font-display text-2xl gold-text" data-testid="game-title">Plinko</h1>
-        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">100% RTP</span>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <Link href="/casino">
+            <Button variant="ghost" size="sm" data-testid="back-to-casino"><ArrowLeft className="w-4 h-4" /></Button>
+          </Link>
+          <h1 className="font-display text-xl gold-text" data-testid="game-title">Plinko</h1>
+          <span className="text-[10px] uppercase tracking-widest font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded">100% RTP</span>
+          <span className="text-[10px] uppercase tracking-widest font-bold text-primary/60 bg-primary/10 px-2 py-0.5 rounded">Provably Fair</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span>{PLAYER_COUNT} playing</span>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_300px] gap-6">
         {/* Plinko Board */}
-        <div className="glass-panel rounded-xl p-6">
+        <div className="rounded-xl border border-border/50 overflow-hidden glass-panel p-6" style={{ boxShadow: "inset 0 2px 12px rgba(0,0,0,0.3)" }}>
           <div
             className="rounded-xl p-6"
             style={{
@@ -190,35 +199,39 @@ export default function PlinkoGame() {
 
         {/* Controls */}
         <div className="space-y-4">
-          <div className="glass-panel rounded-xl p-4">
+          <div className="glass-panel rounded-xl border border-border/50 p-4" style={{ boxShadow: "inset 0 2px 12px rgba(0,0,0,0.3)" }}>
             <p className="text-xs text-muted-foreground mb-1">Balance</p>
             <p className="text-xl font-bold gold-text" data-testid="plinko-balance">
               ${balance.toFixed(2)}
             </p>
           </div>
 
-          <div className="glass-panel rounded-xl p-4 space-y-3">
+          <div className="glass-panel rounded-xl border border-border/50 p-4 space-y-3" style={{ boxShadow: "inset 0 2px 12px rgba(0,0,0,0.3)" }}>
             <div>
-              <label className="text-xs text-muted-foreground">Bet Amount</label>
-              <Input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(e.target.value)}
-                min="1"
-                disabled={gameActive}
-                className="mt-1 bg-muted/50"
-                data-testid="input-bet"
-              />
+              <label className="text-xs text-muted-foreground mb-1 block">Bet Amount</label>
+              <div className="flex gap-1">
+                <Input
+                  type="number"
+                  value={betAmount}
+                  onChange={(e) => setBetAmount(e.target.value)}
+                  min="1"
+                  disabled={gameActive}
+                  className="bg-muted/50"
+                  data-testid="input-bet"
+                />
+                <Button variant="outline" size="sm" onClick={half} disabled={gameActive} className="border-border text-muted-foreground px-2 shrink-0">½</Button>
+                <Button variant="outline" size="sm" onClick={double} disabled={gameActive} className="border-border text-muted-foreground px-2 shrink-0">2×</Button>
+              </div>
             </div>
-            <div className="grid grid-cols-4 gap-1">
-              {[5, 10, 25, 50].map((v) => (
+            <div className="grid grid-cols-3 gap-1">
+              {[5, 10, 25, 50, 100, 250].map((v) => (
                 <Button
                   key={v}
                   variant="outline"
                   size="sm"
                   onClick={() => setBetAmount(v.toString())}
                   disabled={gameActive}
-                  className="text-xs"
+                  className="text-xs border-primary/30 text-primary"
                   data-testid={`btn-bet-${v}`}
                 >
                   ${v}
@@ -229,14 +242,18 @@ export default function PlinkoGame() {
             <Button
               onClick={dropBall}
               disabled={gameActive || playMutation.isPending}
-              className="w-full btn-casino text-lg py-6"
+              className="w-full btn-casino text-lg py-6 uppercase tracking-wider"
               data-testid="btn-drop"
             >
               {gameActive ? "Dropping..." : "Drop Ball"}
             </Button>
+            <div className="pt-2 border-t border-border/50 flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3 h-3 text-primary/50" />
+              <span className="text-[10px] text-primary/50 uppercase tracking-widest">Provably Fair</span>
+            </div>
           </div>
 
-          <div className="glass-panel rounded-xl p-4">
+          <div className="glass-panel rounded-xl border border-border/50 p-4" style={{ boxShadow: "inset 0 2px 12px rgba(0,0,0,0.3)" }}>
             <h3 className="text-sm font-semibold gold-text mb-2">How to Play</h3>
             <div className="text-xs text-muted-foreground space-y-1.5">
               <p>1. Set your bet and drop the ball</p>

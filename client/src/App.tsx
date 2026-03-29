@@ -14,6 +14,9 @@ import ProfilePage from "@/pages/profile";
 import AdminPage from "@/pages/admin";
 import SportsbookPage from "@/pages/sportsbook";
 import NFTPage from "@/pages/nft";
+import VIPPage from "@/pages/vip";
+import { lazy, Suspense } from "react";
+const MetaversePage = lazy(() => import("@/pages/metaverse"));
 import KenoGame from "@/pages/games/keno";
 import RouletteGame from "@/pages/games/roulette";
 import MinesGame from "@/pages/games/mines";
@@ -37,6 +40,8 @@ function AppRouter() {
         <Route path="/admin" component={AdminPage} />
         <Route path="/sportsbook" component={SportsbookPage} />
         <Route path="/nft" component={NFTPage} />
+        <Route path="/vip" component={VIPPage} />
+        <Route path="/metaverse">{() => <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-primary">Loading Metaverse...</div></div>}><MetaversePage /></Suspense>}</Route>
         <Route path="/games/keno" component={KenoGame} />
         <Route path="/games/roulette" component={RouletteGame} />
         <Route path="/games/mines" component={MinesGame} />
