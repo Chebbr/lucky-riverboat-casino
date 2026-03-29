@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import CardSuitsBackground from "@/components/card-suits-background";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import type { Wallet } from "@shared/schema";
@@ -70,8 +71,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Floating neon card suits */}
+      <CardSuitsBackground />
+
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-md relative">
         <div className="container flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -339,13 +343,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 relative z-10">{children}</main>
 
       {/* Chat Overlay */}
       <ChatOverlay />
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-8 mt-auto">
+      <footer className="border-t border-border/50 py-8 mt-auto relative z-10">
         <div className="container text-center text-sm text-muted-foreground">
           <div className="flex items-center justify-center gap-2 mb-3">
             <img src={logoPath} alt="The Lucky Riverboat" className="w-8 h-8 rounded-full" />

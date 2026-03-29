@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Sparkles, Shield, Zap, ExternalLink } from "lucide-react";
 import WagerFeedWidget from "@/components/wager-feed-widget";
@@ -8,48 +7,59 @@ import neonLogoPath from "@assets/Neon-Riverboat-Logo.png";
 import meetXebbPath from "@assets/Meet-Xebb.jpg";
 
 const games = [
-  { name: "Riverboat Keno", path: "/games/keno", icon: "🎱", desc: "Pick your lucky numbers and watch the draw unfold" },
-  { name: "Beached", path: "/games/crash", icon: "🚀", desc: "Ride the wave and cash out before it crashes" },
-  { name: "Roulette", path: "/games/roulette", icon: "🎰", desc: "Place your bets and spin the wheel of fortune" },
-  { name: "Helm", path: "/games/helm", icon: "🎡", desc: "Spin the captain's wheel and claim your treasure" },
-  { name: "Walk the Plank", path: "/games/tower", icon: "🏴‍☠️", desc: "Climb the tower and avoid the traps" },
-  { name: "Hidden Treasure", path: "/games/mines", icon: "💎", desc: "Uncover gems while dodging hidden mines" },
-  { name: "Hitide Lowtide", path: "/games/hilow", icon: "🃏", desc: "Predict if the next card is higher or lower" },
-  { name: "Blackjack", path: "/games/blackjack", icon: "🃏", desc: "Beat the dealer to 21 without going over" },
-  { name: "Slots", path: "/games/slots", icon: "🎰", desc: "Spin the reels and match symbols for big wins" },
-  { name: "Plinko", path: "/games/plinko", icon: "⚪", desc: "Drop the ball and watch it bounce to multipliers" },
+  { name: "Riverboat Keno", path: "/games/keno", icon: "🎱", desc: "Pick your lucky numbers and watch the draw unfold", gradient: "from-blue-600/20 to-blue-900/20" },
+  { name: "Beached", path: "/games/crash", icon: "🚀", desc: "Ride the wave and cash out before it crashes", gradient: "from-orange-600/20 to-orange-900/20" },
+  { name: "Roulette", path: "/games/roulette", icon: "🎰", desc: "Place your bets and spin the wheel of fortune", gradient: "from-red-600/20 to-red-900/20" },
+  { name: "Helm", path: "/games/helm", icon: "🎡", desc: "Spin the captain's wheel and claim your treasure", gradient: "from-purple-600/20 to-purple-900/20" },
+  { name: "Walk the Plank", path: "/games/tower", icon: "🏴‍☠️", desc: "Climb the tower and avoid the traps", gradient: "from-yellow-600/20 to-yellow-900/20" },
+  { name: "Hidden Treasure", path: "/games/mines", icon: "💎", desc: "Uncover gems while dodging hidden mines", gradient: "from-cyan-600/20 to-cyan-900/20" },
+  { name: "Hitide Lowtide", path: "/games/hilow", icon: "🃏", desc: "Predict if the next card is higher or lower", gradient: "from-green-600/20 to-green-900/20" },
+  { name: "Blackjack", path: "/games/blackjack", icon: "🃏", desc: "Beat the dealer to 21 without going over", gradient: "from-slate-600/20 to-slate-900/20" },
+  { name: "Slots", path: "/games/slots", icon: "🎰", desc: "Spin the reels and match symbols for big wins", gradient: "from-pink-600/20 to-pink-900/20" },
+  { name: "Plinko", path: "/games/plinko", icon: "⚪", desc: "Drop the ball and watch it bounce to multipliers", gradient: "from-indigo-600/20 to-indigo-900/20" },
 ];
 
 export default function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        {/* Particle effect */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+      <section className="relative overflow-hidden py-24 md:py-32">
+        {/* Ambient gold glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[150px]" style={{ background: 'oklch(0.78 0.12 85 / 0.05)' }} />
+        </div>
+
+        {/* Golden dust particles floating upward */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(24)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-primary/30 rounded-full"
+              className="absolute rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: `${5 + (i * 4.1) % 92}%`,
+                bottom: `${(i * 7) % 40}%`,
+                width: i % 3 === 0 ? '3px' : '2px',
+                height: i % 3 === 0 ? '3px' : '2px',
+                background: i % 2 === 0 ? 'oklch(0.85 0.10 85)' : 'oklch(0.78 0.12 85)',
+                boxShadow: '0 0 4px oklch(0.78 0.12 85 / 0.6)',
               }}
               animate={{
-                opacity: [0, 1, 0],
-                scale: [0, 1.5, 0],
+                y: [0, -(200 + (i * 30) % 200)],
+                x: [0, (i % 2 === 0 ? 1 : -1) * (10 + (i * 7) % 20)],
+                opacity: [0, 0.9, 0.9, 0],
+                scale: [0.5, 1.2, 0.8, 0],
               }}
               transition={{
-                duration: 2 + Math.random() * 3,
+                duration: 4 + (i * 0.4) % 4,
                 repeat: Infinity,
-                delay: Math.random() * 5,
+                delay: (i * 0.35) % 5,
+                ease: "easeOut",
               }}
             />
           ))}
         </div>
 
-        <div className="container relative py-16 md:py-24">
+        <div className="container relative">
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
             {/* Neon Logo */}
             <motion.div
@@ -58,13 +68,24 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
               className="mb-8"
             >
-              <img
-                src={neonLogoPath}
-                alt="The Lucky Riverboat Casino & Sportsbook"
-                className="w-64 md:w-80 mx-auto"
-                style={{ filter: "drop-shadow(0 0 30px oklch(0.78 0.12 85 / 0.3))" }}
-                data-testid="hero-logo"
-              />
+              <div className="relative">
+                {/* Warm radial glow behind logo */}
+                <div className="absolute inset-0 rounded-3xl" style={{
+                  background: 'radial-gradient(circle, oklch(0.78 0.12 85 / 0.18) 0%, transparent 70%)',
+                  filter: 'blur(24px)',
+                  transform: 'scale(1.3)',
+                }} />
+                <img
+                  src={neonLogoPath}
+                  alt="The Lucky Riverboat Casino & Sportsbook"
+                  className="w-64 md:w-80 mx-auto relative rounded-2xl"
+                  style={{
+                    filter: "drop-shadow(0 0 40px oklch(0.78 0.12 85 / 0.35))",
+                    mixBlendMode: "screen",
+                  }}
+                  data-testid="hero-logo"
+                />
+              </div>
             </motion.div>
 
             {/* Badge */}
@@ -89,9 +110,9 @@ export default function HomePage() {
               data-testid="hero-title"
             >
               The{" "}
-              <span className="text-gold text-shadow-gold">First Casino</span>{" "}
+              <span className="gold-text-gradient">First Casino</span>{" "}
               With{" "}
-              <span className="text-gold text-shadow-gold">0% House Edge</span>
+              <span className="gold-text-gradient">0% House Edge</span>
             </motion.h1>
 
             <motion.p
@@ -121,10 +142,10 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.7 }}
               className="flex flex-col sm:flex-row gap-4"
             >
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 text-lg glow-gold" data-testid="hero-play-btn">
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 text-lg glow-gold rounded-full uppercase tracking-widest" data-testid="hero-play-btn">
                 <Link href="/games/keno">Start Playing</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 px-8 text-lg" data-testid="hero-sportsbook-btn">
+              <Button asChild size="lg" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 px-8 text-lg rounded-full uppercase tracking-widest" data-testid="hero-sportsbook-btn">
                 <Link href="/sportsbook">Sportsbook</Link>
               </Button>
             </motion.div>
@@ -133,8 +154,12 @@ export default function HomePage() {
       </section>
 
       {/* Why 0% House Edge */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-transparent via-secondary/20 to-transparent">
-        <div className="container">
+      <section className="py-24 md:py-32 relative bg-black/20">
+        {/* Ambient gold blur */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] rounded-full blur-[150px]" style={{ background: 'oklch(0.78 0.12 85 / 0.05)' }} />
+        </div>
+        <div className="container relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -142,8 +167,9 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
+            <p className="uppercase tracking-[0.3em] text-[10px] font-bold text-muted-foreground mb-3">The Difference</p>
             <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
-              Why <span className="text-gold">0% House Edge</span> Matters
+              Why <span className="gold-text-gradient">0% House Edge</span> Matters
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Traditional casinos take a percentage of every bet. We don't. Here's how we compare.
@@ -158,29 +184,27 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="border-red-500/30 bg-red-500/5 h-full">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold text-red-400 mb-4">Traditional Casinos</h3>
-                  <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-400 mt-1">✗</span>
-                      <span>2-15% house edge on every game</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-400 mt-1">✗</span>
-                      <span>Odds stacked against the player</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-400 mt-1">✗</span>
-                      <span>Hidden fees and unfair mechanics</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-red-400 mt-1">✗</span>
-                      <span>Slow withdrawal processing</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+              <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-xl p-8 h-full">
+                <h3 className="text-xl font-bold text-red-400 mb-4" style={{ fontFamily: "'Cinzel', serif" }}>Traditional Casinos</h3>
+                <ul className="space-y-3 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-1">✗</span>
+                    <span>2-15% house edge on every game</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-1">✗</span>
+                    <span>Odds stacked against the player</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-1">✗</span>
+                    <span>Hidden fees and unfair mechanics</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-1">✗</span>
+                    <span>Slow withdrawal processing</span>
+                  </li>
+                </ul>
+              </div>
             </motion.div>
 
             {/* Lucky Riverboat */}
@@ -190,36 +214,34 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="border-primary/30 bg-primary/5 h-full glow-gold-sm">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold text-primary mb-4">The Lucky Riverboat</h3>
-                  <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-400 mt-1">✓</span>
-                      <span>0% house edge — 100% RTP</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-400 mt-1">✓</span>
-                      <span>Completely fair and transparent odds</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-400 mt-1">✓</span>
-                      <span>No hidden fees or manipulation</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-400 mt-1">✓</span>
-                      <span>Instant crypto deposits and withdrawals</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+              <div className="bg-primary/5 border border-primary/20 backdrop-blur-sm rounded-xl p-8 h-full glow-gold-sm">
+                <h3 className="text-xl font-bold text-primary mb-4" style={{ fontFamily: "'Cinzel', serif" }}>The Lucky Riverboat</h3>
+                <ul className="space-y-3 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">✓</span>
+                    <span>0% house edge — 100% RTP</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">✓</span>
+                    <span>Completely fair and transparent odds</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">✓</span>
+                    <span>No hidden fees or manipulation</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">✓</span>
+                    <span>Instant crypto deposits and withdrawals</span>
+                  </li>
+                </ul>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Meet Xebb */}
-      <section className="py-16 md:py-24">
+      <section className="py-24 md:py-32">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             <motion.div
@@ -243,8 +265,9 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
+              <p className="uppercase tracking-[0.3em] text-[10px] font-bold text-muted-foreground mb-3">The Captain</p>
               <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ fontFamily: "'Cinzel', serif" }} data-testid="meet-xebb-title">
-                Meet <span className="text-gold">Xebb</span>
+                Meet <span className="gold-text-gradient">Xebb</span>
               </h2>
               <p className="text-muted-foreground mb-4">
                 Xebb is the founder and captain of The Lucky Riverboat. A passionate gamer and crypto
@@ -262,7 +285,7 @@ export default function HomePage() {
               <a href="https://kick.com/x3bb3r" target="_blank" rel="noopener noreferrer">
                 <Button
                   variant="outline"
-                  className="border-primary/50 text-primary hover:bg-primary/10"
+                  className="border-primary/50 text-primary hover:bg-primary/10 rounded-full uppercase tracking-widest"
                   data-testid="xebb-kick-link"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
@@ -275,8 +298,24 @@ export default function HomePage() {
       </section>
 
       {/* Feature Cards */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-transparent via-secondary/20 to-transparent">
-        <div className="container">
+      <section className="py-24 md:py-32 relative bg-black/20">
+        {/* Ambient gold blur */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] rounded-full blur-[150px]" style={{ background: 'oklch(0.78 0.12 85 / 0.05)' }} />
+        </div>
+        <div className="container relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <p className="uppercase tracking-[0.3em] text-[10px] font-bold text-muted-foreground mb-3">Our Promise</p>
+            <h2 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
+              Built for <span className="gold-text-gradient">Players</span>
+            </h2>
+          </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
@@ -302,24 +341,26 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.15 }}
               >
-                <Card className="border-primary/20 bg-card hover:bg-card/80 transition-colors h-full group">
-                  <CardContent className="p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.desc}</p>
-                  </CardContent>
-                </Card>
+                <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-xl p-8 text-center h-full group hover:border-primary/30 transition-colors">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-bold mb-2" style={{ fontFamily: "'Cinzel', serif" }}>{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Games Grid — Emoji style */}
-      <section className="py-16 md:py-24">
-        <div className="container">
+      {/* Games Grid — Emoji style with gradient backgrounds */}
+      <section className="py-24 md:py-32">
+        {/* Ambient gold blur */}
+        <div className="absolute pointer-events-none overflow-hidden w-full">
+          <div className="mx-auto w-[500px] h-[300px] rounded-full blur-[150px]" style={{ background: 'oklch(0.78 0.12 85 / 0.04)' }} />
+        </div>
+        <div className="container relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -327,8 +368,9 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
+            <p className="uppercase tracking-[0.3em] text-[10px] font-bold text-muted-foreground mb-3">Exclusive Games</p>
             <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
-              Ten <span className="text-gold">Exclusive Games</span>
+              Ten <span className="gold-text-gradient">Exclusive Games</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Each game is crafted with care and offers a unique experience — all with 0% house edge.
@@ -345,17 +387,18 @@ export default function HomePage() {
                 transition={{ duration: 0.5, delay: i * 0.06 }}
               >
                 <Link href={game.path}>
-                  <Card className="border-border/50 bg-card hover:border-primary/50 transition-all cursor-pointer group h-full hover:shadow-lg hover:shadow-primary/5 game-tile" data-testid={`game-card-${game.path.split('/').pop()}`}>
-                    <CardContent className="p-6 text-center">
-                      <span className="text-5xl block mb-4 group-hover:scale-110 transition-transform">
-                        {game.icon}
-                      </span>
-                      <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors">
-                        {game.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">{game.desc}</p>
-                    </CardContent>
-                  </Card>
+                  <div
+                    className={`bg-gradient-to-br ${game.gradient} border border-white/10 backdrop-blur-sm rounded-xl p-6 text-center cursor-pointer group h-full hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 game-tile transition-all`}
+                    data-testid={`game-card-${game.path.split('/').pop()}`}
+                  >
+                    <span className="text-5xl block mb-4 group-hover:scale-110 transition-transform">
+                      {game.icon}
+                    </span>
+                    <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors" style={{ fontFamily: "'Cinzel', serif" }}>
+                      {game.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{game.desc}</p>
+                  </div>
                 </Link>
               </motion.div>
             ))}
@@ -364,8 +407,11 @@ export default function HomePage() {
       </section>
 
       {/* Live Wager Feed */}
-      <section className="py-16 md:py-24 bg-card/30 border-y border-border/50">
-        <div className="container">
+      <section className="py-24 md:py-32 relative bg-black/20">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] rounded-full blur-[120px]" style={{ background: 'oklch(0.78 0.12 85 / 0.04)' }} />
+        </div>
+        <div className="container relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -373,8 +419,9 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             className="max-w-4xl mx-auto"
           >
+            <p className="uppercase tracking-[0.3em] text-[10px] font-bold text-muted-foreground mb-3 text-center">Happening Now</p>
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-              <span className="text-gold">Live</span> Action
+              <span className="gold-text-gradient">Live</span> Action
             </h2>
             <WagerFeedWidget />
           </motion.div>
@@ -382,8 +429,11 @@ export default function HomePage() {
       </section>
 
       {/* CTA Footer */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-        <div className="container">
+      <section className="py-24 md:py-32 relative">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[150px]" style={{ background: 'oklch(0.78 0.12 85 / 0.05)' }} />
+        </div>
+        <div className="container relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -391,8 +441,9 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             className="text-center max-w-3xl mx-auto"
           >
+            <p className="uppercase tracking-[0.3em] text-[10px] font-bold text-muted-foreground mb-3">All Aboard</p>
             <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
-              Ready to <span className="text-gold">Set Sail?</span>
+              Ready to <span className="gold-text-gradient">Set Sail?</span>
             </h2>
             <p className="text-muted-foreground mb-8">
               Join The Lucky Riverboat today and experience the fairest casino in the world.
@@ -424,7 +475,7 @@ export default function HomePage() {
             <Button
               asChild
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 text-lg glow-gold"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 text-lg glow-gold rounded-full uppercase tracking-widest"
               data-testid="cta-deposit-btn"
             >
               <Link href="/wallet">Deposit Now</Link>
